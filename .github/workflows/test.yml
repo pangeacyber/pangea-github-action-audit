@@ -1,0 +1,16 @@
+name: "units-test"
+on:
+  issues:
+    types: [opened, closed, reopened]
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./
+      with:
+        text: "test"
+        token: ${{secrets.PANGEA_TOKEN}}
+        domain: ${{secrets.PANGEA_DOMAIN}}
