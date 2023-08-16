@@ -1,0 +1,18 @@
+name: 'Log to Pangea'
+description: 'Write to Pangea Secure Audit Log'
+inputs:
+  text:
+    description: 'text to write to Pangea Audit Log'
+    required: true
+  domain:
+    description: 'Pangea Domain'
+    required: true
+  token:
+    description: 'Pangea Token needed to write to Log'
+    required: true
+outputs:
+  http_response:
+    description: 'The result from the Pangea API'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

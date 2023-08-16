@@ -1,0 +1,34 @@
+{
+  "name": "pangea-github-action-audit",
+  "version": "1.0.0",
+  "description": "Write to Pangea Secure Audit Log",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "ncc build index.js -o dist --source-map --license licenses.txt",
+    "all": "npm run prepare"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pangeacyber/pangea-github-action-audit.git"
+  },
+  "keywords": [
+    "GitHub",
+    "Actions",
+    "JavaScript",
+    "Pangea",
+    "Audit-Log"
+  ],
+  "author": "Pangea",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pangeacyber/pangea-github-action-audit/issues"
+  },
+  "homepage": "https://github.com/pangeacyber/pangea-github-action-audit#readme",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "pangea-node-sdk": "^2.0.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.36.1"
+  }
+}
