@@ -10,17 +10,17 @@ const context = github.context;
 // most @actions toolkit packages have async methods
 async function run() {
   const data = {
-    action: context.action,
+    action: context.action_repository,
     actor: context.actor,
     message: core.getInput('text'),
     source: "GitHub Action",
   };
 
   try{
-    core.info('githubcontext '+context)
+    core.info('githubcontext '+JSON.stringify(context))
     core.info('Logging: '+data.message);
     const logResponse = await audit.log(data, {verbose: true});
-    core.info('Response: '+logResponse.result);
+    core.info('Response: '+JSON.stringify(logResponse.result));
     core.setOutput('results', logResponse.result);
   } catch (err) {
     if (err instanceof pangea.PangeaErrors.APIError) {
