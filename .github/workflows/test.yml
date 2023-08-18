@@ -6,8 +6,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: ./
+    - name: Check out
+      uses: actions/checkout@v3
+    - name: local
+      uses: ./
       with:
         text: "test"
         token: ${{secrets.PANGEA_TOKEN}}
