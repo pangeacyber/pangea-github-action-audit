@@ -4,7 +4,6 @@ on:
     types: [opened, closed, reopened]
 
 jobs:
-
   test:
     runs-on: ubuntu-latest
     steps:
