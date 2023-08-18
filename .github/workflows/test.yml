@@ -1,4 +1,4 @@
-name: "units-test"
+name: "test-on-issue"
 on:
   issues:
     types: [opened, closed, reopened]
@@ -6,11 +6,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - name: Check out
-      uses: actions/checkout@v3
-    - name: local
-      uses: ./
+    - uses: actions/checkout@v3
+    - uses: ./
       with:
-        text: "test"
+        text: "An issue was Opened, Closed, or re-opened"
         token: ${{secrets.PANGEA_TOKEN}}
         domain: ${{secrets.PANGEA_DOMAIN}}
