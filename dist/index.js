@@ -33270,15 +33270,15 @@ const context = github.context;
 // most @actions toolkit packages have async methods
 async function run() {
   const data = {
-    action: context.action_repository,
+    action: context.workflow +"/"+context.job+"/"+context.action,
     actor: context.actor,
+    target: context.eventName,
     message: core.getInput('text'),
     source: "GitHub Action",
   };
 
   try{
-    core.info('githubcontext '+JSON.stringify(context))
-    core.info('Logging: '+data.message);
+    core.info('Message text to be logged: '+data.message);
     const logResponse = await audit.log(data, {verbose: true});
     core.info('Response: '+JSON.stringify(logResponse.result));
     core.setOutput('results', logResponse.result);
