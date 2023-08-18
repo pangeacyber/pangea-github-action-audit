@@ -33270,11 +33270,11 @@ const context = github.context;
 // most @actions toolkit packages have async methods
 async function run() {
   const data = {
-    action: context.workflow +"/"+context.job+"/"+context.action,
+    action: context.action,
     actor: context.actor,
     target: context.eventName,
     message: core.getInput('text'),
-    source: "GitHub Action",
+    source: "GitHub Workflow Job: "+context.workflow +"/"+context.job,
   };
 
   try{
