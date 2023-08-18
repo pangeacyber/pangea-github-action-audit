@@ -6,7 +6,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: pangeacyber/pangea-github-action-audit@1.0.1
+    - uses: pangeacyber/pangea-github-action-audit@1.0.2
       with:
         text: "New pull request was opened for ${{github.repository}}"
         token: ${{secrets.PANGEA_TOKEN}}
