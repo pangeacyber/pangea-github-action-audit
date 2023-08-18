@@ -15834,6 +15834,14 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 716:
+/***/ ((module) => {
+
+module.exports = eval("require")("@actions/github");
+
+
+/***/ }),
+
 /***/ 9491:
 /***/ ((module) => {
 
@@ -26323,22 +26331,28 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
 const core = __nccwpck_require__(2186);
-const pangea = __nccwpck_require__(9449)
+const github = __nccwpck_require__(716);
+const pangea = __nccwpck_require__(9449);
 
 const token = core.getInput('token');
 const config = new pangea.PangeaConfig({ domain: core.getInput('domain')});
 const audit = new pangea.AuditService(token, config);
+const context = github.context;
 
 // most @actions toolkit packages have async methods
 async function run() {
   const data = {
+    action: context.action,
+    actor: context.actor,
     message: core.getInput('text'),
+    source: "GitHub Action",
   };
 
-  try {
-    core.info("Logging: %s", data.message);
+  try{
+    core.info('githubcontext '+context)
+    core.info('Logging: '+data.message);
     const logResponse = await audit.log(data, {verbose: true});
-    core.info("Response: %s", logResponse.result);
+    core.info('Response: '+logResponse.result);
     core.setOutput('results', logResponse.result);
   } catch (err) {
     if (err instanceof pangea.PangeaErrors.APIError) {
