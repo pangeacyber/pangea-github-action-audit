@@ -1,5 +1,6 @@
 name: 'Log to Pangea'
 description: 'Write a new entry into Pangea Secure Audit Log'
+labels: [purple, archive]
 inputs:
   text:
     description: 'Text to pass into the message field'
