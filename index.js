@@ -10,14 +10,14 @@ const context = github.context;
 // most @actions toolkit packages have async methods
 async function run() {
   const data = {
-    action: context.github.action,
-    actor: context.github.actor,
+    action: context.action,
+    actor: context.actor,
     message: core.getInput('text'),
     source: "GitHub Action",
   };
 
   try{
-    core.info(context.github)
+    core.info(context)
     core.info('Logging: %s', data.message);
     const logResponse = await audit.log(data, {verbose: true});
     core.info('Response: %s', logResponse.result);
