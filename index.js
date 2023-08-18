@@ -17,10 +17,10 @@ async function run() {
   };
 
   try{
-    core.info(context)
-    core.info('Logging: %s', data.message);
+    core.info('githubcontext '+context)
+    core.info('Logging: '+data.message);
     const logResponse = await audit.log(data, {verbose: true});
-    core.info('Response: %s', logResponse.result);
+    core.info('Response: '+logResponse.result);
     core.setOutput('results', logResponse.result);
   } catch (err) {
     if (err instanceof pangea.PangeaErrors.APIError) {
