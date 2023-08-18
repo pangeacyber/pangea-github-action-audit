@@ -38,7 +38,7 @@ with:
 Minimal example
 
 ```yml
-name: Log Pull Request
+name: "Log Pull Request"
 on:
   pull_request:
     types: [opened]
@@ -46,8 +46,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: ./
+    - uses: pangeacyber/pangea-github-action-audit@1.0.1
       with:
         text: "New pull request was opened for ${{github.repository}}"
         token: ${{secrets.PANGEA_TOKEN}}

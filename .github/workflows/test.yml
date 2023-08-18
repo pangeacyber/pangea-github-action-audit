@@ -2,7 +2,6 @@ name: "units-test"
 on:
   issues:
     types: [opened, closed, reopened]
-
 jobs:
   test:
     runs-on: ubuntu-latest
