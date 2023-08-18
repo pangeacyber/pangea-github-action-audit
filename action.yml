@@ -1,14 +1,14 @@
 name: 'Log to Pangea'
-description: 'Write to Pangea Secure Audit Log'
+description: 'Write a new entry into Pangea Secure Audit Log'
 inputs:
   text:
-    description: 'text to write to Pangea Audit Log'
+    description: 'Text to pass into the message field'
     required: true
   domain:
     description: 'Pangea Domain'
     required: true
   token:
-    description: 'Pangea Token needed to write to Log'
+    description: 'Pangea Token with access to Secure Audit Log Service'
     required: true
 outputs:
   http_response:

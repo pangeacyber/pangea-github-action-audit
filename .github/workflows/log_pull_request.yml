@@ -1,0 +1,14 @@
+name: "units-test"
+on:
+  pull_request:
+    types: [opened]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./
+      with:
+        text: "New pull request was opened for ${{github.repository}}"
+        token: ${{secrets.PANGEA_TOKEN}}
+        domain: ${{secrets.PANGEA_DOMAIN}}
