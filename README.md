@@ -3,7 +3,7 @@
 Use this action to log text to the Pangea Secure Audit log service.
 To use this action, a Pangea account is required.
 
-To get a Pangea account [Sign up for free](https://pangea.cloud/signup)
+To get a Pangea account [Sign up for free](https://l.pangea.cloud/GitHubActionsAuditRepo)
 
 ## How it works
 
@@ -15,7 +15,7 @@ Similar in nature to AWS for Compute APIs, Twilio for Communications APIs, or St
 
 To configure Pangea:
 
-1. Configure Pangea Secure Audit Log following [the configuration guide](https://pangea.cloud/docs/getting-started/configure-services/).
+1. Configure Pangea Secure Audit Log following [the configuration guide](https://l.pangea.cloud/GitHubActionsAuditRepo-configure).
 2. When you create your token in the guide, make sure it has access to Secure Audit Log
 3. Save your Pangea token and Pangea domain as secrets in your github repo /settings/secrets/actions
 
