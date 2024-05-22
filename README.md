@@ -40,7 +40,7 @@ Minimal example
 ```yml
 name: "Log Pull Request"
 on:
-  pull_request:
+  pull_request_target:
     types: [opened]
 jobs:
   test:
