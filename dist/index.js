@@ -16954,6 +16954,25 @@ module.exports = async (input, options, callback) => {
 		options.agent = agent.http;
 	}
 
+	// If we're sending HTTP/1.1, handle any explicitly set H2 headers in the options:
+	if (options.headers) {
+		options.headers = {...options.headers};
+
+		// :authority is equivalent to the HTTP/1.1 host header
+		if (options.headers[':authority']) {
+			if (!options.headers.host) {
+				options.headers.host = options.headers[':authority'];
+			}
+
+			delete options.headers[':authority'];
+		}
+
+		// Remove other HTTP/2 headers as they have their counterparts in the options
+		delete options.headers[':method'];
+		delete options.headers[':scheme'];
+		delete options.headers[':path'];
+	}
+
 	return delayAsyncDestroy(http.request(options, callback));
 };
 
@@ -19247,27 +19266,22 @@ class Keyv extends EventEmitter {
 				}
 
 				if (isArray) {
-					const result = [];
-
-					for (let row of data) {
+					return data.map((row, index) => {
 						if ((typeof row === 'string')) {
 							row = this.opts.deserialize(row);
 						}
 
 						if (row === undefined || row === null) {
-							result.push(undefined);
-							continue;
+							return undefined;
 						}
 
 						if (typeof row.expires === 'number' && Date.now() > row.expires) {
-							this.delete(key).then(() => undefined);
-							result.push(undefined);
-						} else {
-							result.push((options && options.raw) ? row : row.value);
+							this.delete(key[index]).then(() => undefined);
+							return undefined;
 						}
-					}
 
-					return result;
+						return (options && options.raw) ? row : row.value;
+					});
 				}
 
 				if (typeof data.expires === 'number' && Date.now() > data.expires) {
@@ -20346,10 +20360,11 @@ var __disposeResources;
     __asyncGenerator = function (thisArg, _arguments, generator) {
         if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
         var g = generator.apply(thisArg, _arguments || []), i, q = [];
-        return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
-        function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
+        return i = {}, verb("next"), verb("throw"), verb("return", awaitReturn), i[Symbol.asyncIterator] = function () { return this; }, i;
+        function awaitReturn(f) { return function (v) { return Promise.resolve(v).then(f, reject); }; }
+        function verb(n, f) { if (g[n]) { i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; if (f) i[n] = f(i[n]); } }
         function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
-        function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);  }
+        function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
         function fulfill(value) { resume("next", value); }
         function reject(value) { resume("throw", value); }
         function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
@@ -20413,7 +20428,7 @@ var __disposeResources;
     __addDisposableResource = function (env, value, async) {
         if (value !== null && value !== void 0) {
             if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
-            var dispose;
+            var dispose, inner;
             if (async) {
                 if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
                 dispose = value[Symbol.asyncDispose];
@@ -20421,8 +20436,10 @@ var __disposeResources;
             if (dispose === void 0) {
                 if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
                 dispose = value[Symbol.dispose];
+                if (async) inner = dispose;
             }
             if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
+            if (inner) dispose = function() { try { inner.call(this); } catch (e) { return Promise.reject(e); } };
             env.stack.push({ value: value, dispose: dispose, async: async });
         }
         else if (async) {
@@ -48959,7 +48976,10 @@ const supportedProtocols = new Set([
 const hasCustomProtocol = urlString => {
 	try {
 		const {protocol} = new URL(urlString);
-		return protocol.endsWith(':') && !supportedProtocols.has(protocol);
+
+		return protocol.endsWith(':')
+			&& !protocol.includes('.')
+			&& !supportedProtocols.has(protocol);
 	} catch {
 		return false;
 	}
