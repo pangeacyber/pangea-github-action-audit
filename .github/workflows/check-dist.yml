@@ -9,12 +9,20 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - '**.md'
+
   pull_request:
-    paths-ignore:
-      - '**.md'
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+  merge_group:
+
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   check-dist:
