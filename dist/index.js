@@ -41388,7 +41388,7 @@ module.exports = parseParams
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.version = void 0;
 const types_js_1 = __nccwpck_require__(4986);
-exports.version = "4.2.0";
+exports.version = "4.3.0";
 /** Configuration for a Pangea service client. */
 class PangeaConfig {
     /** Pangea API domain. */
