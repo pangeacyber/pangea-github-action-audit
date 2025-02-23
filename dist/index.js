@@ -41396,7 +41396,7 @@ module.exports = parseParams
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.version = void 0;
 const types_js_1 = __nccwpck_require__(4986);
-exports.version = "4.3.0";
+exports.version = "4.4.0";
 /** Configuration for a Pangea service client. */
 class PangeaConfig {
     /** Pangea API domain. */
@@ -41404,8 +41404,9 @@ class PangeaConfig {
     /**
      * Pangea environment.
      *
-     * This is intended to facilitate SDK development and should not be touched in
-     * everyday usage.
+     * If set to `ConfigEnv.LOCAL`, then `domain` must be the full host (i.e.,
+     * hostname and port) for the Pangea service that this `PangeaConfig` will be
+     * used for.
      */
     environment = types_js_1.ConfigEnv.PRODUCTION;
     /** Config ID for multi-config projects. */
@@ -41705,7 +41706,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ShareService = exports.SanitizeService = exports.FileScanService = exports.VaultService = exports.UserIntelService = exports.URLIntelService = exports.IPIntelService = exports.DomainIntelService = exports.FileIntelService = exports.RedactService = exports.EmbargoService = exports.BaseService = exports.AuthZService = exports.AuthNService = exports.AuditService = exports.PangeaResponse = exports.PangeaRequest = exports.PangeaConfig = exports.FileUploader = exports.FileScanUploader = exports.getFileUploadParams = exports.strToB64 = exports.b64toStr = exports.getHashPrefix = exports.hashNTLM = exports.hashSHA512 = exports.hashSHA1 = exports.hashSHA256 = exports.generateRsaKeyPair = exports.asymmetricDecrypt = void 0;
+exports.ShareService = exports.SanitizeService = exports.FileScanService = exports.VaultService = exports.UserIntelService = exports.URLIntelService = exports.IPIntelService = exports.DomainIntelService = exports.FileIntelService = exports.RedactService = exports.PromptGuardService = exports.EmbargoService = exports.BaseService = exports.AuthZService = exports.AuthNService = exports.AuditService = exports.AIGuardService = exports.PangeaResponse = exports.PangeaRequest = exports.PangeaConfig = exports.FileUploader = exports.FileScanUploader = exports.getFileUploadParams = exports.strToB64 = exports.b64toStr = exports.getHashPrefix = exports.hashNTLM = exports.hashSHA512 = exports.hashSHA1 = exports.hashSHA256 = exports.generateRsaKeyPair = exports.asymmetricDecrypt = void 0;
 const config_js_1 = __importDefault(__nccwpck_require__(3233));
 const request_js_1 = __importDefault(__nccwpck_require__(6314));
 const response_js_1 = __importDefault(__nccwpck_require__(8420));
@@ -41733,11 +41734,13 @@ Object.defineProperty(exports, "FileUploader", ({ enumerable: true, get: functio
 exports.PangeaConfig = config_js_1.default;
 exports.PangeaRequest = request_js_1.default;
 exports.PangeaResponse = response_js_1.default;
+exports.AIGuardService = index_js_1.default.AIGuardService;
 exports.AuditService = index_js_1.default.AuditService;
 exports.AuthNService = index_js_1.default.AuthNService;
 exports.AuthZService = index_js_1.default.AuthZService;
 exports.BaseService = index_js_1.default.BaseService;
 exports.EmbargoService = index_js_1.default.EmbargoService;
+exports.PromptGuardService = index_js_1.default.PromptGuardService;
 exports.RedactService = index_js_1.default.RedactService;
 exports.FileIntelService = index_js_1.default.FileIntelService;
 exports.DomainIntelService = index_js_1.default.DomainIntelService;
@@ -42144,7 +42147,7 @@ class PangeaRequest {
         }
         else {
             const schema = this.config?.insecure === true ? "http://" : "https://";
-            if (this.config?.environment == types_js_1.ConfigEnv.LOCAL) {
+            if (this.config?.environment === types_js_1.ConfigEnv.LOCAL) {
                 url = `${schema}${this.config.domain}/${path}`;
             }
             else {
@@ -42325,6 +42328,54 @@ function parseJSONfields(key, value) {
     }
 }
 exports["default"] = PangeaResponse;
+
+
+/***/ }),
+
+/***/ 3406:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AIGuardService = void 0;
+const base_js_1 = __importDefault(__nccwpck_require__(919));
+/** AI Guard API client. */
+class AIGuardService extends base_js_1.default {
+    /**
+     * Creates a new `AIGuardService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const aiGuard = new AIGuardService("pangea_token", config);
+     * ```
+     *
+     * @summary AI Guard
+     */
+    constructor(token, config) {
+        super("ai-guard", token, config);
+    }
+    /**
+     * @summary Text Guard for scanning LLM inputs and outputs
+     * @description Analyze and redact text to avoid manipulation of the model,
+     *   addition of malicious content, and other undesirable data transfers.
+     * @operationId ai_guard_post_v1_text_guard
+     * @param request Request parameters.
+     */
+    guardText(request) {
+        return this.post("v1/text/guard", request);
+    }
+}
+exports.AIGuardService = AIGuardService;
+exports["default"] = AIGuardService;
 
 
 /***/ }),
@@ -44269,23 +44320,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const ai_guard_js_1 = __importDefault(__nccwpck_require__(3406));
 const audit_js_1 = __importDefault(__nccwpck_require__(1455));
 const index_js_1 = __importDefault(__nccwpck_require__(9799));
 const authz_js_1 = __importDefault(__nccwpck_require__(3132));
-const embargo_js_1 = __importDefault(__nccwpck_require__(4257));
 const base_js_1 = __importDefault(__nccwpck_require__(919));
-const redact_js_1 = __importDefault(__nccwpck_require__(7383));
-const intel_js_1 = __nccwpck_require__(1252);
-const vault_js_1 = __importDefault(__nccwpck_require__(28));
+const embargo_js_1 = __importDefault(__nccwpck_require__(4257));
 const file_scan_js_1 = __nccwpck_require__(7310);
+const intel_js_1 = __nccwpck_require__(1252);
+const prompt_guard_js_1 = __importDefault(__nccwpck_require__(6426));
+const redact_js_1 = __importDefault(__nccwpck_require__(7383));
 const sanitize_js_1 = __importDefault(__nccwpck_require__(9061));
 const share_js_1 = __importDefault(__nccwpck_require__(3967));
+const vault_js_1 = __importDefault(__nccwpck_require__(28));
 exports["default"] = {
+    AIGuardService: ai_guard_js_1.default,
     AuditService: audit_js_1.default,
     AuthNService: index_js_1.default,
     AuthZService: authz_js_1.default,
-    EmbargoService: embargo_js_1.default,
     BaseService: base_js_1.default,
+    EmbargoService: embargo_js_1.default,
+    PromptGuardService: prompt_guard_js_1.default,
     RedactService: redact_js_1.default,
     FileIntelService: intel_js_1.FileIntelService,
     DomainIntelService: intel_js_1.DomainIntelService,
@@ -45301,6 +45356,59 @@ exports.UserIntelService = UserIntelService;
 
 /***/ }),
 
+/***/ 6426:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PromptGuardService = void 0;
+const base_js_1 = __importDefault(__nccwpck_require__(919));
+/** Prompt Guard API client. */
+class PromptGuardService extends base_js_1.default {
+    /**
+     * Creates a new `PromptGuardService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const promptGuard = new PromptGuardService("pangea_token", config);
+     * ```
+     *
+     * @summary Prompt Guard
+     */
+    constructor(token, config) {
+        super("prompt-guard", token, config);
+    }
+    /**
+     * @summary Guard
+     * @description Undocumented.
+     * @operationId prompt_guard_post_v1_guard
+     * @param request Request parameters.
+     * @example
+     * ```ts
+     * const response = await promptGuard.guard({
+     *   messages: [{"role": "user", "content": "text"}]
+     * });
+     * ```
+     */
+    guard(request) {
+        return this.post("v1/guard", request);
+    }
+}
+exports.PromptGuardService = PromptGuardService;
+exports["default"] = PromptGuardService;
+
+
+/***/ }),
+
 /***/ 7383:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -45463,7 +45571,7 @@ class SanitizeService extends base_js_1.default {
      * };
      * const response = await sanitize.sanitize(
      *   request,
-     *   { file: await readFile("/path/to/file.pdf"), name: "filename" }
+     *   { file: await readFile("/path/to/file.txt"), name: "filename" }
      * );
      * ```
      */
