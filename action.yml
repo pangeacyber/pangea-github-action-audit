@@ -17,5 +17,5 @@ outputs:
   http_response:
     description: 'The result from the Pangea API'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
