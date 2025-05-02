@@ -41388,33 +41388,30 @@ module.exports = parseParams
 /***/ }),
 
 /***/ 3233:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.version = void 0;
-const types_js_1 = __nccwpck_require__(4986);
-exports.version = "4.4.0";
+exports.version = "5.1.0";
 /** Configuration for a Pangea service client. */
 class PangeaConfig {
-    /** Pangea API domain. */
-    domain = "pangea.cloud";
     /**
-     * Pangea environment.
-     *
-     * If set to `ConfigEnv.LOCAL`, then `domain` must be the full host (i.e.,
-     * hostname and port) for the Pangea service that this `PangeaConfig` will be
-     * used for.
+     * Template for constructing the base URL for API requests. The placeholder
+     * `{SERVICE_NAME}` will be replaced with the service name slug. This is a
+     * more powerful version of `domain` that allows for setting more than just
+     * the host of the API server. Defaults to
+     * `https://{SERVICE_NAME}.aws.us.pangea.cloud`.
      */
-    environment = types_js_1.ConfigEnv.PRODUCTION;
-    /** Config ID for multi-config projects. */
-    configID;
+    baseUrlTemplate = "https://{SERVICE_NAME}.aws.us.pangea.cloud";
     /**
-     * Whether or not to perform requests via plain HTTP, as opposed to secure
-     * HTTPS.
+     * Base domain for API requests. This is a weaker version of `baseUrlTemplate`
+     * that only allows for setting the host of the API server. Use
+     * BaseURLTemplate for more control over the URL, such as setting
+     * service-specific paths. Defaults to `aws.us.pangea.cloud`.
      */
-    insecure = false;
+    domain = "aws.us.pangea.cloud";
     /** How many times a request should be retried on failure. */
     requestRetries = 3;
     /** Maximum allowed time (in milliseconds) for a request to complete. */
@@ -41433,6 +41430,13 @@ class PangeaConfig {
      * @param options Configuration options.
      */
     constructor(options) {
+        options = options || {};
+        if (!options.baseUrlTemplate && !options.domain) {
+            options.baseUrlTemplate = "https://{SERVICE_NAME}.aws.us.pangea.cloud";
+        }
+        if (!options.baseUrlTemplate && options.domain) {
+            options.baseUrlTemplate = `https://{SERVICE_NAME}.${options.domain}`;
+        }
         Object.assign(this, options);
     }
 }
@@ -41521,13 +41525,13 @@ var PangeaErrors;
     }
     PangeaErrors.ValidationError = ValidationError;
     //Too many requests were made
-    class RateLimiteError extends APIError {
+    class RateLimitError extends APIError {
         constructor(message, response) {
             super(message, response);
-            this.name = "RateLimiteError";
+            this.name = "RateLimitError";
         }
     }
-    PangeaErrors.RateLimiteError = RateLimiteError;
+    PangeaErrors.RateLimitError = RateLimitError;
     class NotFound extends APIError {
         constructor(url, response) {
             super("Resource " + url + " not found", response);
@@ -41878,7 +41882,7 @@ class PangeaRequest {
         return (0, multipart_js_1.getHeaderField)(contentDisposition, "filename", null);
     }
     getFilenameFromURL(url) {
-        return new URL(url).pathname.split("/").pop();
+        return url.pathname.split("/").pop();
     }
     async downloadFile(url) {
         const response = await this.httpRequest(url, {
@@ -41942,7 +41946,7 @@ class PangeaRequest {
         }
         const presigned_url = response.accepted_result.post_url;
         const file_details = response.accepted_result?.post_form_data;
-        this.postPresignedURL(presigned_url, {
+        this.postPresignedURL(new URL(presigned_url), {
             file: fileData.file,
             file_details: file_details,
             name: "file",
@@ -42060,6 +42064,8 @@ class PangeaRequest {
         const fetchOptions = {
             duplex: "half",
             method: options.method,
+            // @ts-expect-error difference in `FormData` types between undici-types
+            // and formdata-node.
             body: options.body,
             headers: options.headers,
         };
@@ -42139,21 +42145,7 @@ class PangeaRequest {
         }
     }
     getUrl(path) {
-        let url;
-        if (this.config.domain.startsWith("http://") ||
-            this.config.domain.startsWith("https://")) {
-            url = `${this.config.domain}/${path}`;
-        }
-        else {
-            const schema = this.config?.insecure === true ? "http://" : "https://";
-            if (this.config?.environment === types_js_1.ConfigEnv.LOCAL) {
-                url = `${schema}${this.config.domain}/${path}`;
-            }
-            else {
-                url = `${schema}${this.serviceName}.${this.config.domain}/${path}`;
-            }
-        }
-        return url;
+        return new URL(path, this.config.baseUrlTemplate.replace("{SERVICE_NAME}", this.serviceName));
     }
     getHeaders() {
         const headers = {};
@@ -42179,7 +42171,7 @@ class PangeaRequest {
             case "ValidationError":
                 throw new errors_js_1.PangeaErrors.ValidationError(response.summary, response);
             case "TooManyRequests":
-                throw new errors_js_1.PangeaErrors.RateLimiteError(response.summary, response);
+                throw new errors_js_1.PangeaErrors.RateLimitError(response.summary, response);
             case "NoCredit":
                 throw new errors_js_1.PangeaErrors.NoCreditError(response.summary, response);
             case "Unauthorized":
@@ -42417,10 +42409,6 @@ class AuditService extends base_js_1.default {
      * @summary Audit
      */
     constructor(token, config, tenantID, configID) {
-        // FIXME: Temporary check to still support configID from PangeaConfig
-        if (!configID && config.configID) {
-            configID = config.configID;
-        }
         super("audit", token, config, configID);
         this.publishedRoots = {};
         this.publishedRoots = {};
@@ -43556,6 +43544,51 @@ exports["default"] = UserAuthenticators;
 
 /***/ }),
 
+/***/ 1736:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UserGroup = void 0;
+const base_js_1 = __importDefault(__nccwpck_require__(919));
+class UserGroup extends base_js_1.default {
+    constructor(token, config) {
+        super("authn", token, config);
+    }
+    /**
+     * @summary Assign groups to a user
+     * @description Add a list of groups to a specified user
+     * @operationId authn_post_v2_user_group_assign
+     */
+    async assign(input) {
+        return await this.post("v2/user/group/assign", input);
+    }
+    /**
+     * @summary Remove a group assigned to a user
+     * @description Remove a group assigned to a user
+     * @operationId authn_post_v2_user_group_remove
+     */
+    async remove(input) {
+        return await this.post("v2/user/group/remove", input);
+    }
+    /**
+     * @summary List of groups assigned to a user
+     * @description Return a list of ids for groups assigned to a user
+     * @operationId authn_post_v2_user_group_list
+     */
+    async list(id) {
+        return await this.post("v2/user/group/list", { id });
+    }
+}
+exports.UserGroup = UserGroup;
+
+
+/***/ }),
+
 /***/ 4147:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -43569,15 +43602,18 @@ const base_js_1 = __importDefault(__nccwpck_require__(919));
 const profile_js_1 = __importDefault(__nccwpck_require__(2366));
 const authenticators_js_1 = __importDefault(__nccwpck_require__(1051));
 const invites_js_1 = __importDefault(__nccwpck_require__(8001));
+const group_js_1 = __nccwpck_require__(1736);
 class User extends base_js_1.default {
     profile;
     authenticators;
     invites;
+    group;
     constructor(token, config) {
         super("authn", token, config);
         this.profile = new profile_js_1.default(token, config);
         this.authenticators = new authenticators_js_1.default(token, config);
         this.invites = new invites_js_1.default(token, config);
+        this.group = new group_js_1.UserGroup(token, config);
     }
     /**
      * @summary Delete User
@@ -46699,12 +46735,7 @@ exports["default"] = VaultService;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Share = exports.AuthZ = exports.AuthN = exports.Vault = exports.Intel = exports.Redact = exports.Audit = exports.TransferMethod = exports.ConfigEnv = void 0;
-var ConfigEnv;
-(function (ConfigEnv) {
-    ConfigEnv["LOCAL"] = "local";
-    ConfigEnv["PRODUCTION"] = "production";
-})(ConfigEnv || (exports.ConfigEnv = ConfigEnv = {}));
+exports.Share = exports.AuthZ = exports.AuthN = exports.Vault = exports.Intel = exports.Redact = exports.Audit = exports.TransferMethod = void 0;
 var TransferMethod;
 (function (TransferMethod) {
     TransferMethod["MULTIPART"] = "multipart";
@@ -46728,21 +46759,6 @@ var Audit;
 })(Audit || (exports.Audit = Audit = {}));
 var Redact;
 (function (Redact) {
-    let RedactType;
-    (function (RedactType) {
-        RedactType["MASK"] = "mask";
-        RedactType["PARTIAL_MASKING"] = "partial_masking";
-        RedactType["REPLACEMENT"] = "replacement";
-        RedactType["DETECT_ONLY"] = "detect_only";
-        RedactType["HASH"] = "hash";
-        RedactType["FPE"] = "fpe";
-    })(RedactType = Redact.RedactType || (Redact.RedactType = {}));
-    let FPEAlphabet;
-    (function (FPEAlphabet) {
-        FPEAlphabet["NUMERIC"] = "numeric";
-        FPEAlphabet["ALPHANUMERICLOWER"] = "alphanumericlower";
-        FPEAlphabet["ALPHANUMERIC"] = "alphanumeric";
-    })(FPEAlphabet = Redact.FPEAlphabet || (Redact.FPEAlphabet = {}));
     let MaskingType;
     (function (MaskingType) {
         MaskingType["MASK"] = "mask";
@@ -46808,7 +46824,6 @@ var Vault;
         AsymmetricAlgorithm["RSA3072_PSS_SHA256"] = "RSA-PSS-3072-SHA256";
         AsymmetricAlgorithm["RSA4096_PSS_SHA256"] = "RSA-PSS-4096-SHA256";
         AsymmetricAlgorithm["RSA4096_PSS_SHA512"] = "RSA-PSS-4096-SHA512";
-        AsymmetricAlgorithm["RSA"] = "RSA-PKCS1V15-2048-SHA256";
         AsymmetricAlgorithm["Ed25519_DILITHIUM2_BETA"] = "ED25519-DILITHIUM2-BETA";
         AsymmetricAlgorithm["Ed448_DILITHIUM3_BETA"] = "ED448-DILITHIUM3-BETA";
         AsymmetricAlgorithm["SPHINCSPLUS_128F_SHAKE256_SIMPLE_BETA"] = "SPHINCSPLUS-128F-SHAKE256-SIMPLE-BETA";
@@ -46835,7 +46850,6 @@ var Vault;
         SymmetricAlgorithm["AES256_GCM"] = "AES-GCM-256";
         SymmetricAlgorithm["AES128_CBC"] = "AES-CBC-128";
         SymmetricAlgorithm["AES256_CBC"] = "AES-CBC-256";
-        SymmetricAlgorithm["AES"] = "AES-CFB-128";
         /** 128-bit encryption using the FF3-1 algorithm. Beta feature. */
         SymmetricAlgorithm["AES128_FF3_1"] = "AES-FF3-1-128-BETA";
         /** 256-bit encryption using the FF3-1 algorithm. Beta feature. */
