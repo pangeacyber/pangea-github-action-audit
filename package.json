@@ -26,7 +26,7 @@
   "homepage": "https://github.com/pangeacyber/pangea-github-action-audit#readme",
   "dependencies": {
     "@actions/core": "1.11.1",
-    "@actions/github": "6.0.0",
+    "@actions/github": "7.0.0",
     "pangea-node-sdk": "4.4.0"
   },
   "devDependencies": {
